@@ -1,12 +1,10 @@
 package com.example.hogle.googlemap;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
@@ -28,20 +26,25 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GPSInfo gpsInfo;
 
-    LocationManager locationManager = null;
-
-    LocationListener locationListener = null;
-
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+
+    private Polyline polyline;
+
+    private Circle mCircle;
+    private Marker mMarker;
+
+
     EditText location_tf = null;
     Button btn_location = null;
     Button btn_setting = null;
@@ -68,11 +71,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // 출퇴근 처리
     private Button btn_check_start;
     private Button btn_check_end;
-
-    // 1. some variables:
-
-    private Circle mCircle;
-    private Marker mMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,14 +102,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 gpsInfo.showSettingsAlert();
             }
 
-            //gpsInfo.locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
-
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this,"현재 위치를 못잡습니다.", Toast.LENGTH_LONG).show();
         }
-
     }
 
 
@@ -126,13 +119,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // 첫번째 행 정보 초기화
         location_tf = (EditText) findViewById(R.id.et_location);
         location_tf.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
 
-                if (keyEvent.getAction() == keyEvent.KEYCODE_ENTER) {
-                    onSearch(view);
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // If the event is a key-down event on the "enter" button
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER))
+                {
+                    // Perform action on Enter key press
+                    onSearch(v);
+                    return true;
                 }
-
                 return false;
             }
         });
@@ -213,18 +209,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             String dis_meter = rb_dis.getText().toString();
 
-            if(dis_meter.indexOf("50m") > -1) {
-                return 50;
-            }else if(dis_meter.indexOf("100m") > -1) {
-                return 100;
-            }else if(dis_meter.indexOf("500m") > -1) {
-                return 500;
-            }else if(dis_meter.indexOf("1000m") > -1) {
-                return 1000;
-            } else {
-                return 99999;
-            }
+            String number =  dis_meter.replaceAll("[^0-9]", "");
 
+            if(number != ""){
+                return Integer.valueOf(number);
+            }else {
+                return 999999;
+            }
     }
 
     public void radiusDistanceDisplay() {
@@ -250,14 +241,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             currentDistance = (int)distance[0];
 
-            tv_dis.setText("거리 : " + (int) distance[0] + "m / " + (int) distance[0] / 1000 + "km");
+            Integer dis_c = (int) distance[0] - radiusDistanceSetting();
+
+            if(dis_c <= 0) {
+                dis_c = 0;
+            }
+
+            String display_dis = "";
+
+
+            // km 표시
+            if( currentDistance >= 1000 ) {
+                Integer dis_km = currentDistance - (((int) distance[0] / 1000) * 1000);
+                display_dis = (int) distance[0] / 1000 + "." + dis_km + "km";
+            } else {
+                // m 표시
+                display_dis = currentDistance + "m";
+            }
+
+            tv_dis.setText(display_dis + " (반경안까지 " + dis_c + "m 남음)" );
 
             locationCheck();
 
-            mMap.addPolyline(new PolylineOptions().geodesic(true)
-                            .add(new LatLng(currentLat, currentLng))
-                            .add(new LatLng(goalLat, goalLng))
-            );
+            if(polyline != null){
+                polyline.remove();
+            }
+
+            PolylineOptions polylineOptions = new PolylineOptions();
+            ArrayList<LatLng> arrayPoints = new ArrayList<>();
+
+
+            polylineOptions.geodesic(true);
+            arrayPoints.add(new LatLng(currentLat, currentLng));
+            arrayPoints.add(new LatLng(goalLat, goalLng));
+
+            polylineOptions.addAll(arrayPoints);
+            polyline = mMap.addPolyline(polylineOptions);
 
         }
     }
@@ -269,6 +288,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if( currentDistance != -1 ) {
             if(currentDistance <= radiusDisSet){
 
+                tv_dis.setTextColor(Color.BLACK);
+
                 if( start_check == false ) {
                     btn_check_start.setEnabled(true);
                 }
@@ -278,6 +299,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
             }else {
+
+                tv_dis.setTextColor(Color.RED);
+
                 btn_check_start.setEnabled(false);
                 btn_check_end.setEnabled(false);
             }
@@ -296,17 +320,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
 
-    }
-
-    public static Criteria getCriteria() {
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setAltitudeRequired(true);
-        criteria.setBearingRequired(true);
-        criteria.setSpeedRequired(true);
-        criteria.setCostAllowed(true);
-        criteria.setPowerRequirement(Criteria.POWER_HIGH);
-        return criteria;
     }
 
     public void onSearch(View v) {
@@ -341,7 +354,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 tv_address.setText(address.getAddressLine(0));
 
                 LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(latLng).title("도착지"));
+                //mMap.addMarker(new MarkerOptions().flat(false).position(latLng).title("도착지"));
+                // title 표시
+/*                Marker melbourne = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title(address.getAddressLine(0)));
+                melbourne.showInfoWindow();*/
+
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
 
                 // 거리 표시
@@ -360,6 +379,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         et_lat_goal.setText("");
         et_lng_goal.setText("");
         tv_address.setText("");
+        tv_dis.setText("");
     }
 
     // GPS 환경 설정으로 이동
@@ -386,12 +406,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         mMap.setMyLocationEnabled(true);
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -413,6 +431,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void drawMarkerWithCircle(LatLng position){
+
         double radiusInMeters = (double) radiusDistanceSetting();
 
         int strokeColor = 0x990000FF; //red outline
@@ -422,6 +441,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mCircle = mMap.addCircle(circleOptions);
 
         MarkerOptions markerOptions = new MarkerOptions().position(position);
+        //.flat(true).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker).).anchor(0.5f, 0.9f);
+                //.flat(false).icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)).anchor(0.5f, 0.8f);
         mMarker = mMap.addMarker(markerOptions);
     }
 }
