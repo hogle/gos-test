@@ -53,19 +53,49 @@
 
         <LinearLayout
             android:orientation="horizontal"
+            android:weightSum="2"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Lat : "
-                android:id="@+id/tv_" />
-
-            <EditText
+            <LinearLayout
+                android:layout_weight="1"
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/et_lat" />
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="현재 Lat : "
+                    android:id="@+id/tv_1" />
+
+                <EditText
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/et_lat_current" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="목적지 Lat : "
+                    android:id="@+id/tv_2" />
+
+                <EditText
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/et_lat_goal" />
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -74,18 +104,131 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <LinearLayout
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="현재 Lng : "
+                    android:id="@+id/textView4" />
+
+                <EditText
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/et_lng_current" />
+            </LinearLayout>
+
+
+
+            <LinearLayout
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="목적지 Lng : "
+                    android:id="@+id/textView4_1" />
+
+                <EditText
+                    android:layout_weight="1"
+                    android:singleLine="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/et_lng_goal" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Lng : "
-                android:id="@+id/textView4" />
+                android:text="반경 설정"
+                android:id="@+id/textView" />
 
-            <EditText
+
+            <RadioGroup
+                android:id="@+id/rg_dis_group"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/et_lng" />
+                android:orientation="horizontal"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/rb_dis_50m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:text="50m"/>
+
+                <RadioButton
+                    android:id="@+id/rb_dis_100m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="100m"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rb_dis_500m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="500m"/>
+
+                <RadioButton
+                    android:id="@+id/rb_dis_1000m"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1000m"/>
+
+            </RadioGroup>
+
         </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="출근"
+                android:enabled="false"
+                android:id="@+id/btn_check_start" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="퇴근"
+                android:visibility="gone"
+                android:enabled="false"
+                android:id="@+id/btn_check_end" />
+
+        </LinearLayout>
+
+
     </LinearLayout>
+
+
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
